@@ -1,0 +1,16 @@
+{
+  "base_url": "https://api.tripleseat.com",
+  "client_id": "<UID / Application ID from Tripleseat OAuth2 Client Applications>",
+  "client_secret": "<Secret from Tripleseat OAuth2 Client Applications>",
+  "refresh_token": "<from one-time Postman Authorization Code flow>",
+  "endpoints": {
+    "Locations": {
+      "url_ending": "/api/v1/locations",
+      "i_table": "i_TripleseatAPI_Locations"
+    },
+    "Events": {
+      "url_ending": "/api/v1/events",
+      "i_table": "i_TripleseatAPI_Events"
+    }
+  }
+}

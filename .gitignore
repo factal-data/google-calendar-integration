@@ -1,0 +1,28 @@
+# Google OAuth secrets
+credentials.json
+token.json
+token.meta.json
+client_secret_*.json
+
+# Atlas / Tripleseat local secrets
+00214-Atlas/**/config.atlas.json
+00214-Atlas/**/*.secret.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

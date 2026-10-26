@@ -1,0 +1,129 @@
+timezone: America/Chicago
+owner_email: moses.hoavo@gmail.com
+
+# Co-parent gets each person calendar (separate calendars = distinct colors in her app).
+# Google mobile apps paint all events on one shared calendar the same color; event
+# colorId alone is not enough for Angela.
+shares:
+  - email: angelaphuoc@gmail.com
+    role: reader # See all event details
+
+# Old calendars — sync migrates managed events onto per-person calendars, then deletes empties.
+legacy_combined_calendar_names:
+  - Moses, Elliott & Elliana
+  - Elliott & Elliana
+  - Elliott
+  - Elliana
+  - Moses
+
+conflict_lookahead_weeks: 8
+conflict_scan_owned_calendars: true
+
+retire_title_contains:
+  - badminton
+  - kumon
+  - piano
+  - vietnamese
+
+people:
+  huy:
+    calendar_name: Huy
+    color_id: "11" # event Tomato (red)
+    calendar_color_id: "3" # calendar list Tomato
+    reminder_minutes: 30
+  vy:
+    calendar_name: Vy
+    color_id: "5" # event Banana (yellow)
+    calendar_color_id: "12" # calendar list Banana
+    reminder_minutes: 30
+  hoa:
+    calendar_name: Hoa
+    color_id: "10" # event Basil (green)
+    calendar_color_id: "9" # calendar list Pistachio (brighter green)
+    reminder_minutes: 30
+
+series:
+  # series ids kept stable so existing managedId events update/migrate
+  - id: elliott-badminton-weekday
+    person: huy
+    summary: Huy Badminton
+    days: [TU, WE]
+    start: "18:00"
+    end: "20:00"
+
+  - id: elliott-badminton-saturday
+    person: huy
+    summary: Huy Badminton (game time - optional)
+    days: [SA]
+    start: "13:30"
+    end: "15:30"
+
+  - id: huy-badminton-saturday-afternoon
+    person: huy
+    summary: Huy Badminton
+    days: [SA]
+    start: "15:30"
+    end: "17:30"
+
+  - id: elliott-kumon
+    person: huy
+    summary: Huy Kumon
+    days: [MO, TH]
+    start: "16:00"
+    end: "16:30"
+
+  - id: elliott-piano
+    person: huy
+    summary: Huy Piano
+    days: [MO, SA]
+    start: "18:00"
+    end: "19:00"
+
+  - id: elliana-piano
+    person: vy
+    summary: Vy Piano
+    days: [WE]
+    start: "18:00"
+    end: "19:00"
+
+  - id: vy-piano-wednesday
+    person: vy
+    summary: Vy Piano
+    days: [WE]
+    start: "16:00"
+    end: "16:30"
+
+  - id: vy-kumon
+    person: vy
+    summary: Vy Kumon
+    days: [MO, TH]
+    start: "16:00"
+    end: "16:30"
+
+  - id: elliana-badminton
+    person: vy
+    summary: Vy Badminton
+    days: [TU]
+    start: "17:30"
+    end: "19:00"
+
+  - id: vy-badminton-friday
+    person: vy
+    summary: Vy Badminton
+    days: [FR]
+    start: "17:00"
+    end: "18:30"
+
+  - id: vy-vietnamese
+    person: vy
+    summary: Vy Vietnamese
+    days: [MO, TH]
+    start: "18:00"
+    end: "19:00"
+
+  - id: moses-badminton-weekday
+    person: hoa
+    summary: Hoa Badminton
+    days: [TU, TH]
+    start: "16:00"
+    end: "17:00"
