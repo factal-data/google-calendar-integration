@@ -113,12 +113,46 @@ def expand_all_windows(
     from_date: date,
     weeks: int,
 ) -> list[TimeWindow]:
+    """Expand every series; a series with its own timezone is expanded in that zone."""
     windows: list[TimeWindow] = []
     for series in series_list:
+        series_tz = ZoneInfo(series.timezone) if series.timezone else tz
         windows.extend(
-            expand_series_windows(series, tz=tz, from_date=from_date, weeks=weeks)
+            expand_series_windows(series, tz=series_tz, from_date=from_date, weeks=weeks)
         )
     return windows
+
+
+def local_slot_segments(
+    series: Series,
+    *,
+    series_tz: ZoneInfo,
+    home_tz: ZoneInfo,
+    from_date: date,
+    weeks: int = 53,
+) -> list[tuple[date, str]]:
+    """Return (first local date, "Mon,Sat 18:00-19:00 CDT") each time the home-tz slot changes.
+
+    A series in another zone (Vietnam Zoom teacher) shifts in home time when
+    either side changes DST; this shows when.
+    """
+    windows = expand_series_windows(
+        series, tz=series_tz, from_date=from_date, weeks=weeks
+    )
+    segments: list[tuple[date, str, set[int]]] = []
+    for window in windows:
+        start = window.start.astimezone(home_tz)
+        end = window.end.astimezone(home_tz)
+        hours = f"{start:%H:%M}-{end:%H:%M} {start.tzname()}"
+        if segments and segments[-1][1] == hours:
+            segments[-1][2].add(start.weekday())
+        else:
+            segments.append((start.date(), hours, {start.weekday()}))
+    day_names = calendar.day_abbr
+    return [
+        (first, f"{','.join(day_names[d] for d in sorted(days))} {hours}")
+        for first, hours, days in segments
+    ]
 
 
 def to_rfc3339(dt: datetime) -> str:

@@ -8,19 +8,37 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from . import calendar_client as cal
-from .config import ScheduleConfig, Series
+from .config import BYDAY_TO_WEEKDAY, ScheduleConfig, Series
 from .schedule_times import (
     first_occurrence_on_or_after,
+    local_slot_segments,
     series_end_datetime,
     to_rfc3339,
 )
 
 
-def _series_slot(series: Series) -> str:
+def _series_slot(series: Series, config: ScheduleConfig) -> str:
+    series_tz = config.timezone_for(series)
     if series.freq == "MONTHLY":
         start = series.starts_on.isoformat() if series.starts_on else "?"
-        return f"every {series.interval} months from {start} {series.start}-{series.end}"
-    return f"{','.join(series.days)} {series.start}-{series.end}"
+        slot = f"every {series.interval} months from {start} {series.start}-{series.end}"
+    else:
+        slot = f"{','.join(series.days)} {series.start}-{series.end}"
+    slot = f"{slot} {series_tz}"
+    if series_tz == config.timezone:
+        return slot
+    home_tz = ZoneInfo(config.timezone)
+    segments = local_slot_segments(
+        series,
+        series_tz=ZoneInfo(series_tz),
+        home_tz=home_tz,
+        from_date=datetime.now(home_tz).date(),
+    )
+    local = "; ".join(
+        text if i == 0 else f"from {first:%a %Y-%m-%d} {text}"
+        for i, (first, text) in enumerate(segments)
+    )
+    return f"{slot} = {config.timezone}: {local}"
 
 
 @dataclass
@@ -40,7 +58,8 @@ def build_event_body(
     *,
     from_date: date | None = None,
 ) -> dict[str, Any]:
-    tz = ZoneInfo(config.timezone)
+    tz_name = config.timezone_for(series)
+    tz = ZoneInfo(tz_name)
     person = config.person_for(series)
     today = from_date or datetime.now(tz).date()
     start_dt = first_occurrence_on_or_after(series, today, tz)
@@ -54,11 +73,11 @@ def build_event_body(
         "summary": series.summary,
         "start": {
             "dateTime": start_dt.isoformat(),
-            "timeZone": config.timezone,
+            "timeZone": tz_name,
         },
         "end": {
             "dateTime": end_dt.isoformat(),
-            "timeZone": config.timezone,
+            "timeZone": tz_name,
         },
         "recurrence": [rrule],
         "colorId": person.color_id,
@@ -101,8 +120,11 @@ def _same_managed_payload(existing: dict[str, Any], desired: dict[str, Any]) -> 
         de_dt = de.get("dateTime")
         if not ex_dt or not de_dt:
             return False
-        ex_parsed = datetime.fromisoformat(ex_dt.replace("Z", "+00:00"))
-        de_parsed = datetime.fromisoformat(de_dt.replace("Z", "+00:00"))
+        # Google may return dateTime in the calendar's offset, not the event's
+        # timeZone; compare wall-clock time in the desired zone.
+        edge_tz = ZoneInfo(de["timeZone"])
+        ex_parsed = datetime.fromisoformat(ex_dt.replace("Z", "+00:00")).astimezone(edge_tz)
+        de_parsed = datetime.fromisoformat(de_dt.replace("Z", "+00:00")).astimezone(edge_tz)
         if (ex_parsed.hour, ex_parsed.minute) != (de_parsed.hour, de_parsed.minute):
             return False
 
@@ -151,8 +173,8 @@ def plan_series_actions(
                     calendar_id=calendar_id,
                     calendar_name=person.calendar_name,
                     detail=(
-                        f"{person.calendar_name}: {_series_slot(series)} "
-                        f"{config.timezone} (after calendar create)"
+                        f"{person.calendar_name}: {_series_slot(series, config)} "
+                        f"(after calendar create)"
                     ),
                 )
             )
@@ -168,10 +190,7 @@ def plan_series_actions(
                     summary=series.summary,
                     calendar_id=calendar_id,
                     calendar_name=person.calendar_name,
-                    detail=(
-                        f"{person.calendar_name}: {_series_slot(series)} "
-                        f"{config.timezone}"
-                    ),
+                    detail=f"{person.calendar_name}: {_series_slot(series, config)}",
                 )
             )
             continue
@@ -197,7 +216,10 @@ def plan_series_actions(
                     summary=series.summary,
                     calendar_id=calendar_id,
                     calendar_name=person.calendar_name,
-                    detail=f"{person.calendar_name} eventId={existing.get('id')}",
+                    detail=(
+                        f"{person.calendar_name} eventId={existing.get('id')} -> "
+                        f"{_series_slot(series, config)}"
+                    ),
                 )
             )
     return actions
@@ -247,7 +269,8 @@ def apply_series_actions(
             existing = cal.get_event(service, calendar_id, action.event_id)
             body = dict(desired)
             if existing.get("start") and existing["start"].get("dateTime"):
-                tz = ZoneInfo(config.timezone)
+                tz_name = config.timezone_for(series)
+                tz = ZoneInfo(tz_name)
                 old_start = datetime.fromisoformat(
                     existing["start"]["dateTime"].replace("Z", "+00:00")
                 ).astimezone(tz)
@@ -260,13 +283,18 @@ def apply_series_actions(
                     second=0,
                     microsecond=0,
                 )
+                # Moving a series to another zone (or new days) can put the old
+                # anchor on a day outside BYDAY; start fresh instead.
+                weekdays = {BYDAY_TO_WEEKDAY[d] for d in series.days}
+                if series.freq == "WEEKLY" and anchored.weekday() not in weekdays:
+                    anchored = new_start
                 body["start"] = {
                     "dateTime": anchored.isoformat(),
-                    "timeZone": config.timezone,
+                    "timeZone": tz_name,
                 }
                 body["end"] = {
                     "dateTime": series_end_datetime(series, anchored).isoformat(),
-                    "timeZone": config.timezone,
+                    "timeZone": tz_name,
                 }
             updated = cal.update_event(service, calendar_id, action.event_id, body)
             applied.append(

@@ -72,19 +72,24 @@ series:
     start: "16:00"
     end: "16:30"
 
+  # Zoom with teacher in Vietnam: days/times are VIETNAM time (no DST there).
+  # Chicago time moves 1h with US DST: CDT = VN - 12h, CST = VN - 13h.
+  # e.g. VN Tue 06:00 = Mon 18:00 CDT (summer) / Mon 17:00 CST (winter).
   - id: elliott-piano
     person: huy
     summary: Huy Piano
-    days: [MO, SA]
-    start: "18:00"
-    end: "19:00"
+    timezone: Asia/Ho_Chi_Minh
+    days: [TU, SU] # = Chicago Mon, Sat evening
+    start: "06:00" # 6:00 PM CDT / 5:00 PM CST
+    end: "07:00"
 
   - id: elliana-piano
     person: vy
     summary: Vy Piano
-    days: [WE]
-    start: "18:00"
-    end: "19:00"
+    timezone: Asia/Ho_Chi_Minh
+    days: [TH] # = Chicago Wed evening
+    start: "06:00" # 6:00 PM CDT / 5:00 PM CST
+    end: "07:00"
 
   - id: vy-piano-wednesday
     person: vy
@@ -117,9 +122,10 @@ series:
   - id: vy-vietnamese
     person: vy
     summary: Vy Vietnamese
-    days: [MO, TH]
-    start: "18:00"
-    end: "19:00"
+    timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
+    days: [TU, FR] # = Chicago Mon, Thu evening
+    start: "06:00" # 6:00 PM CDT / 5:00 PM CST
+    end: "07:00"
 
   - id: moses-badminton-weekday
     person: hoa
@@ -127,3 +133,11 @@ series:
     days: [TU, TH]
     start: "16:00"
     end: "17:00"
+
+  - id: hoa-piano
+    person: hoa
+    summary: Hoa Piano
+    timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
+    days: [WE] # = Chicago Tue night
+    start: "09:00" # 9:00 PM CDT / 8:00 PM CST
+    end: "10:00"

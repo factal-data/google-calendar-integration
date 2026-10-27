@@ -103,6 +103,22 @@ series:
 
 Then run `python -m src.cli dry-run` and `python -m src.cli sync`.
 
+## Classes in another timezone (Zoom with a teacher in Vietnam)
+
+Set `timezone` on the series and write `days`/`start`/`end` in **that** zone. Google repeats the event in that zone and shows it in local time, so US DST changes move it automatically (Vietnam has no DST: Chicago is VN − 12h in CDT, VN − 13h in CST).
+
+```yaml
+  - id: hoa-piano
+    person: hoa
+    summary: Hoa Piano
+    timezone: Asia/Ho_Chi_Minh
+    days: [WE]      # = Chicago Tue night
+    start: "09:00"  # 9:00 PM CDT / 8:00 PM CST
+    end: "10:00"
+```
+
+`dry-run` prints the Chicago slot and the dates it shifts.
+
 ## Conflict cleanup rules
 
 On `sync` / `dry-run`, the tool looks ahead (`conflict_lookahead_weeks`, default 8) at slots defined in YAML and lists events on:

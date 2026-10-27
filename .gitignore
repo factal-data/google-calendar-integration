@@ -21,6 +21,7 @@ venv/
 .env
 
 # IDE / OS
+.claude/settings.local.json
 .idea/
 .vscode/
 *.swp

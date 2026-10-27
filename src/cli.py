@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from .auth import get_calendar_service, token_info
 from .config import DEFAULT_CONFIG_PATH, load_config
@@ -187,12 +189,17 @@ def cmd_list(args: argparse.Namespace) -> int:
         print("No managed events found in the look-ahead window.")
         return 0
     print(f"Managed instances ({len(events)}):")
+    home_tz = ZoneInfo(config.timezone)
     for event in events:
         props = (event.get("extendedProperties") or {}).get("private") or {}
         mid = props.get("managedId", "?")
         start = (event.get("start") or {}).get("dateTime") or (
             event.get("start") or {}
         ).get("date")
+        if "T" in (start or ""):
+            # Local wall time, so Vietnam-anchored classes show their DST shift.
+            local = datetime.fromisoformat(start.replace("Z", "+00:00")).astimezone(home_tz)
+            start = f"{local:%a %Y-%m-%d %H:%M %Z}"
         cal_name = event.get("_calendar_name") or "?"
         print(
             f"  - [{cal_name}/{mid}] {event.get('summary')} @ {start} "

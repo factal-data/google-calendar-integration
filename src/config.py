@@ -57,6 +57,10 @@ class Series:
     freq: str = "WEEKLY"  # WEEKLY | MONTHLY
     interval: int = 1
     starts_on: date | None = None
+    # IANA zone the days/start/end are written in (e.g. Asia/Ho_Chi_Minh for a
+    # Zoom teacher in Vietnam). None = config timezone. Google expands the RRULE
+    # in this zone, so the local time shifts by itself across US DST changes.
+    timezone: str | None = None
 
 
 @dataclass(frozen=True)
@@ -85,6 +89,9 @@ class ScheduleConfig:
             raise KeyError(
                 f"Series {series.id!r} references unknown person {series.person!r}"
             ) from exc
+
+    def timezone_for(self, series: Series) -> str:
+        return series.timezone or self.timezone
 
 
 def _require(mapping: dict[str, Any], key: str, path: Path) -> Any:
@@ -226,6 +233,9 @@ def load_config(path: Path | None = None) -> ScheduleConfig:
                 freq=freq,
                 interval=interval,
                 starts_on=starts_on,
+                timezone=(
+                    str(item["timezone"]).strip() if item.get("timezone") else None
+                ),
             )
         )
 
