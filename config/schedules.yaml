@@ -104,6 +104,22 @@ series:
     end: "08:00"
     starts_on: "2026-11-06" # first: VN Fri 11/6 (= Chicago Thu 11/5)
 
+  - id: huy-ela-tutor
+    person: huy
+    summary: Huy ELA Tutor
+    timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
+    days: [SA] # = Chicago Fri evening
+    start: "08:00" # 8:00 PM CDT / 7:00 PM CST
+    end: "09:00"
+
+  - id: huy-math-tutor
+    person: huy
+    summary: Huy Math Tutor
+    timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
+    days: [SA] # = Chicago Sat morning (same day, VN evening)
+    start: "22:00" # 10:00 AM CDT / 9:00 AM CST
+    end: "23:00"
+
   - id: elliana-piano
     person: vy
     summary: Vy Piano

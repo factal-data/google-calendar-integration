@@ -47,7 +47,7 @@ How it is modeled: the series sets `timezone: Asia/Ho_Chi_Minh`, and `days`/`sta
 - `dry-run` detail for these series prints the Chicago slot and the dates it shifts (`from <date> ... CST`).
 - Series without `timezone` stay in the top-level `timezone` (America/Chicago) and do not shift.
 - Users may give dates Vietnamese-style (D/M/YYYY): "6/11/2026" meant 6 Nov 2026. Check that the weekday matches.
-- Current Zoom series: Huy `huy-piano-monday-vn` (VN Mon 06:00) + `huy-piano-friday-vn` (VN Fri 07:00) from 2026-11-06, replacing `elliott-piano` (VN Tue+Sun, until 2026-11-05); `elliana-piano` (Vy, VN Thu 06:00); `vy-vietnamese` (VN Tue+Fri 06:00).
+- Current Zoom series: Huy `huy-piano-monday-vn` (VN Mon 06:00) + `huy-piano-friday-vn` (VN Fri 07:00) from 2026-11-06, replacing `elliott-piano` (VN Tue+Sun, until 2026-11-05); `elliana-piano` (Vy, VN Thu 06:00); `vy-vietnamese` (VN Tue+Fri 06:00); Huy `huy-ela-tutor` (VN Sat 08:00 = Chicago Fri evening) and `huy-math-tutor` (VN Sat 22:00 = Chicago Sat morning), from 2026-10-30.
 - Not Zoom/Vietnam (Chicago local): `hoa-piano` (Tue 21:00), `vy-piano-saturday` (Sat 14:00, replaced `vy-piano-wednesday` Wed 16:00 after 2026-10-28).
 - Code: `Series.timezone` / `ScheduleConfig.timezone_for` (`src/config.py`), `local_slot_segments` (`src/schedule_times.py`), and `build_event_body` / `_same_managed_payload` / the update anchor in `src/sync.py`.
 
