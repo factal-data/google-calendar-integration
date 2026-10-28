@@ -12,6 +12,7 @@ from .config import BYDAY_TO_WEEKDAY, ScheduleConfig, Series
 from .schedule_times import (
     first_occurrence_on_or_after,
     local_slot_segments,
+    rrule_until_utc,
     series_end_datetime,
     to_rfc3339,
 )
@@ -25,6 +26,10 @@ def _series_slot(series: Series, config: ScheduleConfig) -> str:
     else:
         slot = f"{','.join(series.days)} {series.start}-{series.end}"
     slot = f"{slot} {series_tz}"
+    if series.freq == "WEEKLY" and series.starts_on:
+        slot += f" from {series.starts_on.isoformat()}"
+    if series.until:
+        slot += f" until {series.until.isoformat()}"
     if series_tz == config.timezone:
         return slot
     home_tz = ZoneInfo(config.timezone)
@@ -38,7 +43,21 @@ def _series_slot(series: Series, config: ScheduleConfig) -> str:
         text if i == 0 else f"from {first:%a %Y-%m-%d} {text}"
         for i, (first, text) in enumerate(segments)
     )
-    return f"{slot} = {config.timezone}: {local}"
+    return f"{slot} = {config.timezone}: {local or 'no more instances'}"
+
+
+def _has_ended(series: Series, config: ScheduleConfig) -> bool:
+    if not series.until:
+        return False
+    tz = ZoneInfo(config.timezone_for(series))
+    return series.until < datetime.now(tz).date()
+
+
+def _recurrence_key(recurrence: list[str] | None) -> list[tuple[str, ...]]:
+    """Order-insensitive RRULE parts, in case Google reorders FREQ/BYDAY/UNTIL."""
+    return sorted(
+        tuple(sorted(rule.removeprefix("RRULE:").split(";"))) for rule in recurrence or []
+    )
 
 
 @dataclass
@@ -68,7 +87,9 @@ def build_event_body(
         rrule = f"RRULE:FREQ=MONTHLY;INTERVAL={series.interval}"
     else:
         rrule = f"RRULE:FREQ=WEEKLY;BYDAY={','.join(series.days)}"
-
+    until = rrule_until_utc(series, tz)
+    if until:
+        rrule += f";UNTIL={until}"
     body: dict[str, Any] = {
         "summary": series.summary,
         "start": {
@@ -106,10 +127,14 @@ def build_event_body(
 
 
 def _same_managed_payload(existing: dict[str, Any], desired: dict[str, Any]) -> bool:
-    keys = ("summary", "colorId", "location", "description", "recurrence")
+    keys = ("summary", "colorId", "location", "description")
     for key in keys:
         if existing.get(key) != desired.get(key):
             return False
+    if _recurrence_key(existing.get("recurrence")) != _recurrence_key(
+        desired.get("recurrence")
+    ):
+        return False
 
     for edge in ("start", "end"):
         ex = existing.get(edge) or {}
@@ -181,6 +206,19 @@ def plan_series_actions(
             continue
 
         existing = cal.find_managed_series_master(service, calendar_id, series.id)
+        if not existing and _has_ended(series, config):
+            actions.append(
+                SyncAction(
+                    series_id=series.id,
+                    action="unchanged",
+                    event_id=None,
+                    summary=series.summary,
+                    calendar_id=calendar_id,
+                    calendar_name=person.calendar_name,
+                    detail=f"{person.calendar_name}: ended {series.until}, not created",
+                )
+            )
+            continue
         if not existing:
             actions.append(
                 SyncAction(

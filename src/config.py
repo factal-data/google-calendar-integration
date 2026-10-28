@@ -56,7 +56,8 @@ class Series:
     description: str | None = None
     freq: str = "WEEKLY"  # WEEKLY | MONTHLY
     interval: int = 1
-    starts_on: date | None = None
+    starts_on: date | None = None  # MONTHLY anchor; WEEKLY: no instances before
+    until: date | None = None  # last day with an instance (RRULE UNTIL), inclusive
     # IANA zone the days/start/end are written in (e.g. Asia/Ho_Chi_Minh for a
     # Zoom teacher in Vietnam). None = config timezone. Google expands the RRULE
     # in this zone, so the local time shifts by itself across US DST changes.
@@ -196,6 +197,11 @@ def load_config(path: Path | None = None) -> ScheduleConfig:
         starts_on = None
         if item.get("starts_on"):
             starts_on = date.fromisoformat(str(item["starts_on"]))
+        until = None
+        if item.get("until"):
+            until = date.fromisoformat(str(item["until"]))
+            if starts_on and until < starts_on:
+                raise ValueError(f"Series {sid!r}: until is before starts_on")
 
         days_raw = item.get("days")
         if days_raw is None:
@@ -233,6 +239,7 @@ def load_config(path: Path | None = None) -> ScheduleConfig:
                 freq=freq,
                 interval=interval,
                 starts_on=starts_on,
+                until=until,
                 timezone=(
                     str(item["timezone"]).strip() if item.get("timezone") else None
                 ),

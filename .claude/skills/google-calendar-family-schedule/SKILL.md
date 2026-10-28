@@ -28,6 +28,8 @@ Owner: `moses.hoavo@gmail.com`. Share: `angelaphuoc@gmail.com` role `reader`.
 
 - Changing `start`/`end`/`summary` on an existing series **replaces** that series (same `id` / `managedId`)
 - To have **two** Saturday slots, add a **second series** with a new `id` (e.g. `huy-badminton-saturday-afternoon`)
+- To **move** a slot (new day/time, especially from a future date): set `until: YYYY-MM-DD` (last day with a class, inclusive, in the series' zone) on the old series and add a new `id` with the new slot and `starts_on:`. This keeps past classes in history. Rewriting `days` on the old series would move its start date and wipe past instances. Ended series can stay in YAML; a never-created ended series is skipped.
+- Removing a series from YAML does **not** delete its managed event (conflict cleanup skips managed events). End it with `until` instead.
 - Until-done reminders (garage lube, furnace filter, anything with a checkbox) are not YAML series. They are Google Tasks in the **House** list, managed by `apps-script/house-assistant/` (see below). Do not re-add `hoa-garage-door-lube`.
 - After sync, verify with `list` or an API query if the user says they don't see an "extra" event
 
@@ -44,7 +46,9 @@ How it is modeled: the series sets `timezone: Asia/Ho_Chi_Minh`, and `days`/`sta
 - Converting a Chicago time the user gives: work out whether it's a CDT or CST time on that date, then add 12h (CDT) or 13h (CST). Put the Chicago equivalents in a YAML comment.
 - `dry-run` detail for these series prints the Chicago slot and the dates it shifts (`from <date> ... CST`).
 - Series without `timezone` stay in the top-level `timezone` (America/Chicago) and do not shift.
-- Current Zoom series: `elliott-piano` (Huy Mon+Sat), `elliana-piano` (Vy Wed evening), `vy-vietnamese` (Mon+Thu), `hoa-piano` (Hoa Tue night). `vy-piano-wednesday` (Wed 16:00) is local, not Zoom.
+- Users may give dates Vietnamese-style (D/M/YYYY): "6/11/2026" meant 6 Nov 2026. Check that the weekday matches.
+- Current Zoom series: Huy `huy-piano-monday-vn` (VN Mon 06:00) + `huy-piano-friday-vn` (VN Fri 07:00) from 2026-11-06, replacing `elliott-piano` (VN Tue+Sun, until 2026-11-05); `elliana-piano` (Vy, VN Thu 06:00); `vy-vietnamese` (VN Tue+Fri 06:00).
+- Not Zoom/Vietnam (Chicago local): `hoa-piano` (Tue 21:00), `vy-piano-saturday` (Sat 14:00, replaced `vy-piano-wednesday` Wed 16:00 after 2026-10-28).
 - Code: `Series.timezone` / `ScheduleConfig.timezone_for` (`src/config.py`), `local_slot_segments` (`src/schedule_times.py`), and `build_event_body` / `_same_managed_payload` / the update anchor in `src/sync.py`.
 
 ## Series `id` / rename rules

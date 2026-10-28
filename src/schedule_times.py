@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import calendar
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from .config import BYDAY_TO_WEEKDAY, Series
@@ -46,7 +46,7 @@ def first_occurrence_on_or_after(
             cursor = add_months(cursor, series.interval)
         return datetime.combine(cursor, start_t, tzinfo=tz)
     target_weekdays = {BYDAY_TO_WEEKDAY[d] for d in series.days}
-    cursor = on_or_after
+    cursor = max(on_or_after, series.starts_on) if series.starts_on else on_or_after
     for _ in range(8):
         if cursor.weekday() in target_weekdays:
             return datetime.combine(cursor, start_t, tzinfo=tz)
@@ -62,6 +62,21 @@ def series_end_datetime(series: Series, start_dt: datetime) -> datetime:
         # Spans midnight (not expected for badminton, but keep correct).
         end_dt += timedelta(days=1)
     return end_dt
+
+
+def in_date_bounds(series: Series, day: date) -> bool:
+    """True if `day` (in the series timezone) is within starts_on..until."""
+    if series.starts_on and day < series.starts_on:
+        return False
+    return not (series.until and day > series.until)
+
+
+def rrule_until_utc(series: Series, tz: ZoneInfo) -> str | None:
+    """RRULE UNTIL value: end of the `until` day in the series zone, as UTC."""
+    if not series.until:
+        return None
+    last = datetime.combine(series.until, time(23, 59, 59), tzinfo=tz)
+    return last.astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
 def expand_series_windows(
@@ -80,7 +95,7 @@ def expand_series_windows(
         windows: list[TimeWindow] = []
         cursor = first.date()
         while cursor < end_exclusive:
-            if cursor >= from_date:
+            if cursor >= from_date and in_date_bounds(series, cursor):
                 start_dt = datetime.combine(cursor, start_t, tzinfo=tz)
                 end_dt = datetime.combine(cursor, end_t, tzinfo=tz)
                 if end_t <= start_t:
@@ -96,7 +111,7 @@ def expand_series_windows(
     end_exclusive = from_date + timedelta(weeks=weeks)
     cursor = from_date
     while cursor < end_exclusive:
-        if cursor.weekday() in target_weekdays:
+        if cursor.weekday() in target_weekdays and in_date_bounds(series, cursor):
             start_dt = datetime.combine(cursor, start_t, tzinfo=tz)
             end_dt = datetime.combine(cursor, end_t, tzinfo=tz)
             if end_t <= start_t:

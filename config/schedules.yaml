@@ -72,9 +72,11 @@ series:
     start: "16:00"
     end: "16:30"
 
-  # Zoom with teacher in Vietnam: days/times are VIETNAM time (no DST there).
+  # Zoom with teacher in Vietnam: days/times/dates are VIETNAM time (no DST there).
   # Chicago time moves 1h with US DST: CDT = VN - 12h, CST = VN - 13h.
   # e.g. VN Tue 06:00 = Mon 18:00 CDT (summer) / Mon 17:00 CST (winter).
+  # To change a slot from a date: give the old series `until`, add a new id with
+  # `starts_on` (keeps past classes in history). Ended series can stay listed.
   - id: elliott-piano
     person: huy
     summary: Huy Piano
@@ -82,6 +84,25 @@ series:
     days: [TU, SU] # = Chicago Mon, Sat evening
     start: "06:00" # 6:00 PM CDT / 5:00 PM CST
     end: "07:00"
+    until: "2026-11-05" # last class VN Tue 11/3 (= Chicago Mon 11/2 5 PM CST)
+
+  - id: huy-piano-monday-vn
+    person: huy
+    summary: Huy Piano
+    timezone: Asia/Ho_Chi_Minh
+    days: [MO] # = Chicago Sun evening
+    start: "06:00" # 5:00 PM CST / 6:00 PM CDT
+    end: "07:00"
+    starts_on: "2026-11-06" # first: VN Mon 11/9 (= Chicago Sun 11/8)
+
+  - id: huy-piano-friday-vn
+    person: huy
+    summary: Huy Piano
+    timezone: Asia/Ho_Chi_Minh
+    days: [FR] # = Chicago Thu evening
+    start: "07:00" # 6:00 PM CST / 7:00 PM CDT
+    end: "08:00"
+    starts_on: "2026-11-06" # first: VN Fri 11/6 (= Chicago Thu 11/5)
 
   - id: elliana-piano
     person: vy
@@ -91,12 +112,22 @@ series:
     start: "06:00" # 6:00 PM CDT / 5:00 PM CST
     end: "07:00"
 
+  # Local (not Zoom). Wednesday slot moved to Saturday; old series kept so
+  # past Wednesdays stay in history.
   - id: vy-piano-wednesday
     person: vy
     summary: Vy Piano
     days: [WE]
     start: "16:00"
     end: "16:30"
+    until: "2026-10-28" # last Wednesday class
+
+  - id: vy-piano-saturday
+    person: vy
+    summary: Vy Piano
+    days: [SA]
+    start: "14:00"
+    end: "14:30"
 
   - id: vy-kumon
     person: vy
@@ -137,7 +168,6 @@ series:
   - id: hoa-piano
     person: hoa
     summary: Hoa Piano
-    timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
-    days: [WE] # = Chicago Tue night
-    start: "09:00" # 9:00 PM CDT / 8:00 PM CST
-    end: "10:00"
+    days: [TU] # Chicago local (not Vietnam-anchored), stays 9 PM across DST
+    start: "21:00"
+    end: "22:00"
