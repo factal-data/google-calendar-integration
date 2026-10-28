@@ -104,21 +104,44 @@ series:
     end: "08:00"
     starts_on: "2026-11-06" # first: VN Fri 11/6 (= Chicago Thu 11/5)
 
+  # Tutors: Chicago Fri 8 PM / Sat 10 AM both this week (CDT) and all winter
+  # (CST), so the VN time changes once after this week; from then on they are
+  # Vietnam-anchored and move to 9 PM / 11 AM CDT in March.
   - id: huy-ela-tutor
     person: huy
     summary: Huy ELA Tutor
     timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
     days: [SA] # = Chicago Fri evening
-    start: "08:00" # 8:00 PM CDT / 7:00 PM CST
+    start: "08:00" # Fri 10/30 8:00 PM CDT (this week only)
     end: "09:00"
+    until: "2026-10-31"
+
+  - id: huy-ela-tutor-vn
+    person: huy
+    summary: Huy ELA Tutor
+    timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
+    days: [SA] # = Chicago Fri evening
+    start: "09:00" # 8:00 PM CST / 9:00 PM CDT
+    end: "10:00"
+    starts_on: "2026-11-01" # first: VN Sat 11/7 (= Chicago Fri 11/6)
 
   - id: huy-math-tutor
     person: huy
     summary: Huy Math Tutor
     timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
     days: [SA] # = Chicago Sat morning (same day, VN evening)
-    start: "22:00" # 10:00 AM CDT / 9:00 AM CST
+    start: "22:00" # Sat 10/31 10:00 AM CDT (this week only)
     end: "23:00"
+    until: "2026-10-31"
+
+  - id: huy-math-tutor-vn
+    person: huy
+    summary: Huy Math Tutor
+    timezone: Asia/Ho_Chi_Minh # Zoom, Vietnam teacher
+    days: [SA] # = Chicago Sat morning (same day, VN evening)
+    start: "23:00" # 10:00 AM CST / 11:00 AM CDT
+    end: "00:00" # VN midnight (next day)
+    starts_on: "2026-11-01" # first: VN Sat 11/7 (= Chicago Sat 11/7)
 
   - id: elliana-piano
     person: vy
